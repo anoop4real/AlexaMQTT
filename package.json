@@ -1,0 +1,16 @@
+{
+  "name": "myalexaserver",
+  "version": "1.0.0",
+  "description": "A sample Alexa backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Anoop M",
+  "license": "ISC",
+  "dependencies": {
+    "alexa-verifier": "^2.0.1",
+    "express": "^4.16.3",
+    "mqtt": "^2.18.3"
+  }
+}
