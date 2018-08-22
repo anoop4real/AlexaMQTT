@@ -79,14 +79,15 @@ app.post('/devicemanager', requestVerifier, function(req, res) {
         } else {
           const device = req.body.request.intent.slots.DeviceName.value
           const command = req.body.request.intent.slots.Command.value
-          publishCommand("amp_led/light", device, command)
-            .then((result) => {
-              // Build the response here and send
-              res.json(buildResponse("Ok lights on", true, " lights on"))
-            })
-            .fail((error) => {
-              res.json(buildResponse("Unable to process request", true, null))
-            })
+          res.json(buildResponse("Ok lights on", true, " lights on"))
+          // publishCommand("amp_led/light", device, command)
+          //   .then((result) => {
+          //     // Build the response here and send
+          //     res.json(buildResponse("Ok lights on", true, " lights on"))
+          //   })
+          //   .fail((error) => {
+          //     res.json(buildResponse("Unable to process request", true, null))
+          //   })
         }
 
         break;
