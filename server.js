@@ -63,150 +63,150 @@ function log() {
 }
 app.post('/devicemanager', requestVerifier, function(req, res) {
 
-      if (req.body.request.type === 'LaunchRequest') {
-        res.json(help());
-        isFisrtTime = false
-      } else if (req.body.request.type === 'SessionEndedRequest') { /* ... */
-        log("Session End")
-      } else if (req.body.request.type === 'IntentRequest') {
+  if (req.body.request.type === 'LaunchRequest') {
+    res.json(help());
+    isFisrtTime = false
+  } else if (req.body.request.type === 'SessionEndedRequest') { /* ... */
+    log("Session End")
+  } else if (req.body.request.type === 'IntentRequest') {
 
-        switch (req.body.request.intent.name) {
-          case 'HandleCommand':
-            if (!req.body.request.intent.slots.DeviceName || !req.body.request.intent.slots.DeviceName.value ||
-              !req.body.request.intent.slots.Command || !req.body.request.intent.slots.Command.value) {
+    switch (req.body.request.intent.name) {
+      case 'HandleCommand':
+        if (!req.body.request.intent.slots.DeviceName || !req.body.request.intent.slots.DeviceName.value ||
+          !req.body.request.intent.slots.Command || !req.body.request.intent.slots.Command.value) {
 
-              res.json(handleDataMissing())
-            } else {
-              const device = req.body.request.intent.slots.DeviceName.value
-              const command = req.body.request.intent.slots.Command.value
-              publishCommand("amp_led/light", device, command)
-                .then((result) => {
-                  // Build the response here and send
-                  res.json(buildResponse("Ok lights on", true, " lights on"))
-                })
-                .fail((error) => {
-                  res.json(buildResponse("Unable to process request", true, null))
-                })
-            }
-
-            break;
-
-          case 'AMAZON.StopIntent':
-            res.json(stopAndExit());
-            break;
-          case 'AMAZON.HelpIntent':
-            res.json(help());
-            break;
-          default:
-
+          res.json(handleDataMissing())
+        } else {
+          const device = req.body.request.intent.slots.DeviceName.value
+          const command = req.body.request.intent.slots.Command.value
+          publishCommand("amp_led/light", device, command)
+            .then((result) => {
+              // Build the response here and send
+              res.json(buildResponse("Ok lights on", true, " lights on"))
+            })
+            .fail((error) => {
+              res.json(buildResponse("Unable to process request", true, null))
+            })
         }
+
+        break;
+
+      case 'AMAZON.StopIntent':
+        res.json(stopAndExit());
+        break;
+      case 'AMAZON.HelpIntent':
+        res.json(help());
+        break;
+      default:
+        break;
+    }
+  }
+});
+
+function initializeMqttConnection() {
+
+  log('Attempting connection...');
+  client = mqtt.connect(clientOptions);
+  client.on('connect', function() {
+    log('Connected.');
+  });
+
+  client.on('error', function(e) {
+    log('Connection error.', e);
+    client.end();
+  });
+}
+
+function publishCommand(topic, device, state) {
+  return new Promise((resolve, reject) => {
+    var payload = JSON.stringify({
+      device: state
+    });
+
+    client.publish(topic, payload, publishOptions, function(e) {
+      if (e) {
+        log('Publishing error.', e);
+        reject(e);
       }
-    }
+      log('Published.');
+      resolve('data');
+    });
+  })
+}
 
-    function initializeMqttConnection() {
+function handleDataMissing() {
+  return buildResponse(MISSING_DETAILS, true, null)
+}
 
-      log('Attempting connection...');
-      client = mqtt.connect(clientOptions);
-      client.on('connect', function() {
-        log('Connected.');
-      });
+function stopAndExit() {
 
-      client.on('error', function(e) {
-        log('Connection error.', e);
-        client.end();
-      });
-    }
+  const speechOutput = "<speak>" + STOP_MESSAGE + "</speak>"
+  var jsonObj = buildResponse(speechOutput, true, "");
+  return jsonObj;
+}
 
-    function publishCommand(topic, device, state) {
-      return new Promise((resolve, reject) => {
-        var payload = JSON.stringify({
-          device: state
-        });
+function help() {
 
-        client.publish(topic, payload, publishOptions, function(e) {
-          if (e) {
-            log('Publishing error.', e);
-            reject(e);
-          }
-          log('Published.');
-          resolve('data');
-        });
-      })
-    }
+  const speechOutput = "<speak>" + HELP_MESSAGE + "</speak>"
+  const reprompt = "<speak>" + HELP_REPROMPT + "</speak>"
+  var jsonObj = buildResponseWithRepromt(speechOutput, false, "", reprompt);
 
-    function handleDataMissing() {
-      return buildResponse(MISSING_DETAILS, true, null)
-    }
+  return jsonObj;
+}
 
-    function stopAndExit() {
+function buildResponse(speechText, shouldEndSession, cardText) {
 
-      const speechOutput = "<speak>" + STOP_MESSAGE + "</speak>"
-      var jsonObj = buildResponse(speechOutput, true, "");
-      return jsonObj;
-    }
-
-    function help() {
-
-      const speechOutput = "<speak>" + HELP_MESSAGE + "</speak>"
-      const reprompt = "<speak>" + HELP_REPROMPT + "</speak>"
-      var jsonObj = buildResponseWithRepromt(speechOutput, false, "", reprompt);
-
-      return jsonObj;
-    }
-
-    function buildResponse(speechText, shouldEndSession, cardText) {
-
-      const speechOutput = "<speak>" + speechText + "</speak>"
-      var jsonObj = {
-        "version": "1.0",
-        "response": {
-          "shouldEndSession": shouldEndSession,
-          "outputSpeech": {
-            "type": "SSML",
-            "ssml": speechOutput
-          }
-        },
-        "card": {
-          "type": "Simple",
-          "title": SKILL_NAME,
-          "content": cardText,
-          "text": cardText
-        },
+  const speechOutput = "<speak>" + speechText + "</speak>"
+  var jsonObj = {
+    "version": "1.0",
+    "response": {
+      "shouldEndSession": shouldEndSession,
+      "outputSpeech": {
+        "type": "SSML",
+        "ssml": speechOutput
       }
-      return jsonObj
-    }
+    },
+    "card": {
+      "type": "Simple",
+      "title": SKILL_NAME,
+      "content": cardText,
+      "text": cardText
+    },
+  }
+  return jsonObj
+}
 
-    function buildResponseWithRepromt(speechText, shouldEndSession, cardText, reprompt) {
+function buildResponseWithRepromt(speechText, shouldEndSession, cardText, reprompt) {
 
-      const speechOutput = "<speak>" + speechText + "</speak>"
-      var jsonObj = {
-        "version": "1.0",
-        "response": {
-          "shouldEndSession": shouldEndSession,
-          "outputSpeech": {
-            "type": "SSML",
-            "ssml": speechOutput
-          }
-        },
-        "card": {
-          "type": "Simple",
-          "title": SKILL_NAME,
-          "content": cardText,
-          "text": cardText
-        },
-        "reprompt": {
-          "outputSpeech": {
-            "type": "PlainText",
-            "text": reprompt,
-            "ssml": reprompt
-          }
-        },
+  const speechOutput = "<speak>" + speechText + "</speak>"
+  var jsonObj = {
+    "version": "1.0",
+    "response": {
+      "shouldEndSession": shouldEndSession,
+      "outputSpeech": {
+        "type": "SSML",
+        "ssml": speechOutput
       }
-      return jsonObj
-    }
+    },
+    "card": {
+      "type": "Simple",
+      "title": SKILL_NAME,
+      "content": cardText,
+      "text": cardText
+    },
+    "reprompt": {
+      "outputSpeech": {
+        "type": "PlainText",
+        "text": reprompt,
+        "ssml": reprompt
+      }
+    },
+  }
+  return jsonObj
+}
 
-    initializeMqttConnection();
+initializeMqttConnection();
 
-    app.listen(port);
+app.listen(port);
 
-    console.log('Alexa list RESTful API server started on: ' + port);
+console.log('Alexa list RESTful API server started on: ' + port);
