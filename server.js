@@ -140,15 +140,15 @@ function handleDataMissing() {
 
 function stopAndExit() {
 
-  const speechOutput = "<speak>" + STOP_MESSAGE + "</speak>"
+  const speechOutput = STOP_MESSAGE
   var jsonObj = buildResponse(speechOutput, true, "");
   return jsonObj;
 }
 
 function help() {
 
-  const speechOutput = "<speak>" + HELP_MESSAGE + "</speak>"
-  const reprompt = "<speak>" + HELP_REPROMPT + "</speak>"
+  const speechOutput = HELP_MESSAGE
+  const reprompt = HELP_REPROMPT
   var jsonObj = buildResponseWithRepromt(speechOutput, false, "", reprompt);
 
   return jsonObj;
