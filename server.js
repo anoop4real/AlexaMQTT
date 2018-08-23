@@ -70,6 +70,7 @@ app.post('/devicemanager', requestVerifier, function(req, res) {
     log("Session End")
   } else if (req.body.request.type === 'IntentRequest') {
 
+    checkSlots(req.body.request)
     switch (req.body.request.intent.name) {
       case 'HandleCommand':
         if (!req.body.request.intent.slots.DeviceName || !req.body.request.intent.slots.DeviceName.value ||
@@ -204,6 +205,39 @@ function buildResponseWithRepromt(speechText, shouldEndSession, cardText, reprom
     },
   }
   return jsonObj
+}
+
+function checkSlots(request) {
+  console.log("in checkSlots ");
+  console.log("  current dialogState: " + JSON.stringify(request.dialogState));
+
+  if (request.dialogState === "STARTED") {
+    console.log("in started");
+    console.log("  current request: " + JSON.stringify(request));
+    updatedIntent = request.intent;
+    return (buildSpeechResponseForDialogueState());
+  } else if (request.dialogState !== "COMPLETED") {
+    console.log("in not completed");
+    console.log("  current request: " + JSON.stringify(request));
+    // return a Dialog.Delegate directive with no updatedIntent property.
+    return (buildSpeechResponseForDialogueState());
+  } else {
+    // Dialog is now complete and all required slots should be filled,
+    // so call your normal intent handler.
+    return request.intent;
+  }
+}
+
+function buildSpeechResponseForDialogueState() {
+  return {
+    outputSpeech: null,
+    directives: [{
+      "type": "Dialog.Delegate",
+      "updatedIntent": updatedIntent
+    }],
+    reprompt: null,
+    shouldEndSession: false
+  }
 }
 
 initializeMqttConnection();
