@@ -70,7 +70,9 @@ app.post('/devicemanager', requestVerifier, function(req, res) {
     log("Session End")
   } else if (req.body.request.type === 'IntentRequest') {
 
-    res.json(checkSlots(req.body.request))
+    if (!checkSlots(req.body.request)) {
+      res.json(buildSpeechResponseForDialogueState())
+    }
     switch (req.body.request.intent.name) {
       case 'HandleCommand':
         if (!req.body.request.intent.slots.DeviceName || !req.body.request.intent.slots.DeviceName.value ||
@@ -214,16 +216,16 @@ function checkSlots(request) {
   if (request.dialogState === "STARTED") {
     console.log("in started");
     console.log("  current request: " + JSON.stringify(request));
-    return (buildSpeechResponseForDialogueState());
+    return false;
   } else if (request.dialogState !== "COMPLETED") {
     console.log("in not completed");
     console.log("  current request: " + JSON.stringify(request));
     // return a Dialog.Delegate directive with no updatedIntent property.
-    return (buildSpeechResponseForDialogueState());
+    return false;
   } else {
     // Dialog is now complete and all required slots should be filled,
     // so call your normal intent handler.
-    return request.intent;
+    return true;
   }
 }
 
