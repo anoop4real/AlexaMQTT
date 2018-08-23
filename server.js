@@ -70,7 +70,7 @@ app.post('/devicemanager', requestVerifier, function(req, res) {
     log("Session End")
   } else if (req.body.request.type === 'IntentRequest') {
 
-    checkSlots(req.body.request)
+    res.json(checkSlots(req.body.request))
     switch (req.body.request.intent.name) {
       case 'HandleCommand':
         if (!req.body.request.intent.slots.DeviceName || !req.body.request.intent.slots.DeviceName.value ||
