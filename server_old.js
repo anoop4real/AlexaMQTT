@@ -54,9 +54,10 @@ function initializeMqttConnection() {
 function publishCommand(topic, device, state) {
   return new Promise((resolve, reject) => {
     var payload = JSON.stringify({
-      device: state
+      device: device,
+      command: state
     });
-
+    log(payload)
     client.publish(topic, payload, publishOptions, function(e) {
       if (e) {
         log('Publishing error.', e);

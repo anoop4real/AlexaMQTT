@@ -86,7 +86,9 @@ app.post('/devicemanager', requestVerifier, function(req, res) {
           publishCommand("amp_led/light", device, command)
             .then((result) => {
               // Build the response here and send
-              res.json(buildResponse("Ok lights on", true, " lights on"))
+              var speech = "Ok" + PAUSE + device + PAUSE + command
+              log(speech)
+              res.json(buildResponse(speech, true, speech))
             })
             .catch((error) => {
               res.json(buildResponse("Unable to process request", true, null))
@@ -124,7 +126,8 @@ function initializeMqttConnection() {
 function publishCommand(topic, device, state) {
   return new Promise((resolve, reject) => {
     var payload = JSON.stringify({
-      device: state
+      device: device,
+      command: state
     });
 
     client.publish(topic, payload, publishOptions, function(e) {
