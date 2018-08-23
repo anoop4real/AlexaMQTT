@@ -210,11 +210,10 @@ function buildResponseWithRepromt(speechText, shouldEndSession, cardText, reprom
 function checkSlots(request) {
   console.log("in checkSlots ");
   console.log("  current dialogState: " + JSON.stringify(request.dialogState));
-
+  updatedIntent = request.intent;
   if (request.dialogState === "STARTED") {
     console.log("in started");
     console.log("  current request: " + JSON.stringify(request));
-    updatedIntent = request.intent;
     return (buildSpeechResponseForDialogueState());
   } else if (request.dialogState !== "COMPLETED") {
     console.log("in not completed");
@@ -229,15 +228,17 @@ function checkSlots(request) {
 }
 
 function buildSpeechResponseForDialogueState() {
-  return {
-    outputSpeech: null,
-    directives: [{
-      "type": "Dialog.Delegate",
-      "updatedIntent": updatedIntent
-    }],
-    reprompt: null,
-    shouldEndSession: false
+  var jsonObj = {
+    "version": "1.0",
+    "response": {
+      "shouldEndSession": false,
+      "directives": [{
+        "type": "Dialog.Delegate",
+        "updatedIntent": updatedIntent
+      }]
+    }
   }
+  return jsonObj
 }
 
 initializeMqttConnection();
