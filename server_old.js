@@ -36,7 +36,7 @@ app.post('/trail', function(req, res) {
       // Build the response here and send
       res.send(result);
     })
-    .fail((error) => {
+    .catch((error) => {
       res.status(400)
       res.send(error);
     })
@@ -52,7 +52,7 @@ function initializeMqttConnection() {
 }
 
 function publishCommand(topic, device, state) {
-  return new Promise(function(resolve, reject) {
+  return new Promise((resolve, reject) => {
     var payload = JSON.stringify({
       device: state
     });

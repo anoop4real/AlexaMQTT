@@ -85,7 +85,7 @@ app.post('/devicemanager', requestVerifier, function(req, res) {
               // Build the response here and send
               res.json(buildResponse("Ok lights on", true, " lights on"))
             })
-            .fail((error) => {
+            .catch((error) => {
               res.json(buildResponse("Unable to process request", true, null))
             })
         }
